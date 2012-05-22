@@ -15,6 +15,7 @@ import serial
 import sys
 
 def parse_args():
+    "Parse command line arguments and options"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--baud', metavar='RATE', type=int, default=9600,
                         help="Baud rate for serial port, default 9600")
@@ -25,6 +26,7 @@ def parse_args():
     return parser.parse_args()
 
 def main():
+    "Main subroutine.  It all starts here."
     args = parse_args()
 
     if args.output:
@@ -33,18 +35,18 @@ def main():
         out = sys.stdout
 
     ser = serial.Serial(args.device, args.baud, timeout=0)
-    b = bytearray(64)
+    buf = bytearray(64)
     try:
-        n = True
-        while n:
-            select.select([ser],[],[ser])
-            n = ser.readinto(b)
-            if n:
-                out.write(b[:n])
+        nbytes_read = True
+        while nbytes_read:
+            select.select([ser], [], [ser])
+            nbytes_read = ser.readinto(buf)
+            if nbytes_read > 0:
+                out.write(buf[:nbytes_read])
     except KeyboardInterrupt:
         pass
     else:
-        print >>sys.stderr, "Received EOF on %s; shutting down" % args.device
+        print >> sys.stderr, "Received EOF on %s; shutting down" % args.device
 
 
 if __name__ == '__main__':
